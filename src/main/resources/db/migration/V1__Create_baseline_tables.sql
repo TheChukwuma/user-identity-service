@@ -1,5 +1,5 @@
 -- Create permissions table
-CREATE TABLE permissions (
+CREATE TABLE IF NOT EXISTS permissions (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(255),
@@ -11,7 +11,7 @@ CREATE TABLE permissions (
 );
 
 -- Create roles table
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(255),
@@ -21,7 +21,7 @@ CREATE TABLE roles (
 );
 
 -- Create role_permissions table
-CREATE TABLE role_permissions (
+CREATE TABLE IF NOT EXISTS role_permissions (
     role_id BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,
     PRIMARY KEY (role_id, permission_id),
@@ -30,7 +30,7 @@ CREATE TABLE role_permissions (
 );
 
 -- Create users table
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE users (
 );
 
 -- Create user_roles table
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
     PRIMARY KEY (user_id, role_id),
@@ -65,7 +65,7 @@ CREATE TABLE user_roles (
 );
 
 -- Create addresses table
-CREATE TABLE addresses (
+CREATE TABLE IF NOT EXISTS addresses (
     id BIGSERIAL PRIMARY KEY,
     street VARCHAR(255),
     city VARCHAR(100),
@@ -82,7 +82,7 @@ CREATE TABLE addresses (
 );
 
 -- Create devices table
-CREATE TABLE devices (
+CREATE TABLE IF NOT EXISTS devices (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     type VARCHAR(20),
@@ -102,7 +102,7 @@ CREATE TABLE devices (
 );
 
 -- Create accounts table
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
     id BIGSERIAL PRIMARY KEY,
     account_number VARCHAR(50) NOT NULL UNIQUE,
     account_type VARCHAR(20) NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE accounts (
 );
 
 -- Create security_questions table
-CREATE TABLE security_questions (
+CREATE TABLE IF NOT EXISTS security_questions (
     id BIGSERIAL PRIMARY KEY,
     question VARCHAR(500) NOT NULL,
     answer VARCHAR(255) NOT NULL,
@@ -131,16 +131,55 @@ CREATE TABLE security_questions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Add address_id to users table
-ALTER TABLE users ADD COLUMN address_id BIGINT;
-ALTER TABLE users ADD FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE SET NULL;
+-- Add address_id to users table (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'address_id') THEN
+        ALTER TABLE users ADD COLUMN address_id BIGINT;
+    END IF;
+END $$;
+
+-- Add foreign key constraint (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_name = 'users' AND constraint_name = 'users_address_id_fkey'
+    ) THEN
+        ALTER TABLE users ADD FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE SET NULL;
+    END IF;
+END $$;
 
 -- Create indexes for better performance
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_phone ON users(phone_number);
-CREATE INDEX idx_devices_user_id ON devices(user_id);
-CREATE INDEX idx_devices_is_primary ON devices(is_primary);
-CREATE INDEX idx_accounts_user_id ON accounts(user_id);
-CREATE INDEX idx_accounts_number ON accounts(account_number);
-CREATE INDEX idx_security_questions_user_id ON security_questions(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone_number);
+CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
+CREATE INDEX IF NOT EXISTS idx_devices_is_primary ON devices(is_primary);
+CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_number ON accounts(account_number);
+CREATE INDEX IF NOT EXISTS idx_security_questions_user_id ON security_questions(user_id);
+
+-- Spring Session tables (required for Spring Session JDBC)
+CREATE TABLE IF NOT EXISTS SPRING_SESSION (
+    PRIMARY_ID CHAR(36) NOT NULL,
+    SESSION_ID CHAR(36) NOT NULL,
+    CREATION_TIME BIGINT NOT NULL,
+    LAST_ACCESS_TIME BIGINT NOT NULL,
+    MAX_INACTIVE_INTERVAL INT NOT NULL,
+    EXPIRY_TIME BIGINT NOT NULL,
+    PRINCIPAL_NAME VARCHAR(100),
+    CONSTRAINT SPRING_SESSION_PK PRIMARY KEY (PRIMARY_ID)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS SPRING_SESSION_IX1 ON SPRING_SESSION (SESSION_ID);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX2 ON SPRING_SESSION (EXPIRY_TIME);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX3 ON SPRING_SESSION (PRINCIPAL_NAME);
+
+CREATE TABLE IF NOT EXISTS SPRING_SESSION_ATTRIBUTES (
+    SESSION_PRIMARY_ID CHAR(36) NOT NULL,
+    ATTRIBUTE_NAME VARCHAR(200) NOT NULL,
+    ATTRIBUTE_BYTES BYTEA NOT NULL,
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION(PRIMARY_ID) ON DELETE CASCADE
+);
