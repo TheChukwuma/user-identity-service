@@ -1,22 +1,45 @@
 package com.octopus.user_identity_service.model;
 
-import java.io.Serial;
-import java.io.Serializable;
+import com.octopus.user_identity_service.enums.AddressType;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-public class Address implements Serializable {
+@Entity
+@Table(name = "addresses")
+@Getter
+@Setter
+public class Address extends BaseModel {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+    @Column(name = "street")
     private String street;
+
+    @Column(name = "city")
     private String city;
+
+    @Column(name = "state")
     private String state;
+
+    @Column(name = "postal_code")
     private String postalCode;
+
+    @Column(name = "country")
     private String country;
+
+    @Column(name = "description_of_address")
     private String descriptionOfAddress;
+
+    @Column(name = "long_address")
     private String longAddress;
+
+    @Column(name = "longitude")
     private String longitude;
+
+    @Column(name = "latitude")
     private String latitude;
 
+    @Column(name = "address_type")
+    @Enumerated(EnumType.STRING)
+    private AddressType addressType = AddressType.HOME;
 }
 
