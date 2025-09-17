@@ -12,11 +12,11 @@ import java.util.Optional;
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
 
-    List<Device> findByUser_Id(Long userId);
+    List<Device> findByUserId(Long userId);
 
-    Optional<Device> findByUser_IdAndIsPrimaryTrue(Long userId);
+    Optional<Device> findByUserIdAndIsPrimaryTrue(Long userId);
 
-    List<Device> findByUser_IdAndIsActiveTrue(Long userId);
+    List<Device> findByUserIdAndIsActiveTrue(Long userId);
 
     List<Device> findByIpAddress(String ipAddress);
 

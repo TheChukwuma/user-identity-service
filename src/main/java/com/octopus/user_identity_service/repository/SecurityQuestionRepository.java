@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 public interface SecurityQuestionRepository extends JpaRepository<SecurityQuestion, Long> {
 
-    List<SecurityQuestion> findByUser_Id(Long userId);
+    List<SecurityQuestion> findByUserId(Long userId);
 
-    List<SecurityQuestion> findByUser_IdAndIsActiveTrue(Long userId);
+    List<SecurityQuestion> findByUserIdAndIsActiveTrue(Long userId);
 
     List<SecurityQuestion> findByQuestionType(String questionType);
 

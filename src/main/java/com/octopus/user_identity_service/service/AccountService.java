@@ -68,17 +68,17 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<Account> getAccountsByUserId(Long userId) {
-        return accountRepository.findByUser_Id(userId);
+        return accountRepository.findByUserId(userId);
     }
 
     @Transactional(readOnly = true)
     public Optional<Account> getPrimaryAccountByUserId(Long userId) {
-        return accountRepository.findByUser_IdAndIsPrimaryTrue(userId);
+        return accountRepository.findByUserIdAndIsPrimaryTrue(userId);
     }
 
     @Transactional(readOnly = true)
     public List<Account> getAccountsByUserIdAndStatus(Long userId, AccountStatus status) {
-        return accountRepository.findByUser_IdAndStatus(userId, status.name());
+        return accountRepository.findByUserIdAndStatus(userId, status.name());
     }
 
     @Transactional(readOnly = true)
@@ -206,7 +206,7 @@ public class AccountService {
         }
 
         // First, unset all primary accounts for this user
-        List<Account> userAccounts = accountRepository.findByUser_Id(userId);
+        List<Account> userAccounts = accountRepository.findByUserId(userId);
         userAccounts.forEach(a -> a.setIsPrimary(false));
         accountRepository.saveAll(userAccounts);
 
@@ -243,7 +243,7 @@ public class AccountService {
 
         // If this was the primary account, set another account as primary
         if (account.getIsPrimary()) {
-            List<Account> remainingAccounts = accountRepository.findByUser_Id(account.getUser().getId());
+            List<Account> remainingAccounts = accountRepository.findByUserId(account.getUser().getId());
             remainingAccounts.remove(account);
             if (!remainingAccounts.isEmpty()) {
                 remainingAccounts.get(0).setIsPrimary(true);
@@ -261,13 +261,13 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public BigDecimal getTotalBalanceByUserId(Long userId) {
-        return accountRepository.findByUser_Id(userId)
+        return accountRepository.findByUserId(userId)
                 .stream()
                 .map(Account::getBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private String generateAccountNumber(AccountType accountType) {
+    private static String generateAccountNumber(AccountType accountType) {
         String prefix = accountType.name().substring(0, 3);
         String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         return prefix + "-" + uuid;

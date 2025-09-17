@@ -53,7 +53,7 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public List<Device> getDevicesByUserId(Long userId) {
-        return deviceRepository.findByUser_Id(userId);
+        return deviceRepository.findByUserId(userId);
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +63,7 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public List<Device> getActiveDevicesByUserId(Long userId) {
-        return deviceRepository.findByUser_IdAndIsActiveTrue(userId);
+        return deviceRepository.findByUserIdAndIsActiveTrue(userId);
     }
 
     @Transactional(readOnly = true)
@@ -123,7 +123,7 @@ public class DeviceService {
         }
 
         // First, unset all primary devices for this user
-        List<Device> userDevices = deviceRepository.findByUser_Id(userId);
+        List<Device> userDevices = deviceRepository.findByUserId(userId);
         userDevices.forEach(d -> d.setIsPrimary(false));
         deviceRepository.saveAll(userDevices);
 
@@ -152,7 +152,7 @@ public class DeviceService {
         
         // If this was the primary device, set another active device as primary
         if (device.getIsPrimary()) {
-            List<Device> activeDevices = deviceRepository.findByUser_IdAndIsActiveTrue(device.getUser().getId());
+            List<Device> activeDevices = deviceRepository.findByUserIdAndIsActiveTrue(device.getUser().getId());
             if (!activeDevices.isEmpty()) {
                 activeDevices.get(0).setIsPrimary(true);
                 deviceRepository.save(activeDevices.get(0));
@@ -180,7 +180,7 @@ public class DeviceService {
 
         // If this was the primary device, set another device as primary
         if (device.getIsPrimary()) {
-            List<Device> remainingDevices = deviceRepository.findByUser_Id(device.getUser().getId());
+            List<Device> remainingDevices = deviceRepository.findByUserId(device.getUser().getId());
             remainingDevices.remove(device);
             if (!remainingDevices.isEmpty()) {
                 remainingDevices.get(0).setIsPrimary(true);
@@ -198,7 +198,7 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public long countActiveDevicesByUserId(Long userId) {
-        return deviceRepository.findByUser_IdAndIsActiveTrue(userId).size();
+        return deviceRepository.findByUserIdAndIsActiveTrue(userId).size();
     }
 
     @Transactional(readOnly = true)

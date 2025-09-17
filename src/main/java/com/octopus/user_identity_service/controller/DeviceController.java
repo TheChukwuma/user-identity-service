@@ -23,7 +23,7 @@ public class DeviceController {
     private final DeviceService deviceService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @userSecurityService.canAccessUser(authentication.name, #userId)")
     public ResponseEntity<Device> createDevice(@RequestBody Device device) {
         log.info("Creating device: {}", device.getName());
         Device createdDevice = deviceService.createDevice(device);

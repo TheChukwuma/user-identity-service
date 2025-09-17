@@ -63,12 +63,12 @@ public class SecurityQuestionService {
 
     @Transactional(readOnly = true)
     public List<SecurityQuestion> getSecurityQuestionsByUserId(Long userId) {
-        return securityQuestionRepository.findByUser_Id(userId);
+        return securityQuestionRepository.findByUserId(userId);
     }
 
     @Transactional(readOnly = true)
     public List<SecurityQuestion> getActiveSecurityQuestionsByUserId(Long userId) {
-        return securityQuestionRepository.findByUser_IdAndIsActiveTrue(userId);
+        return securityQuestionRepository.findByUserIdAndIsActiveTrue(userId);
     }
 
     @Transactional(readOnly = true)
@@ -147,7 +147,7 @@ public class SecurityQuestionService {
     public boolean validateUserSecurityQuestion(Long userId, String question, String answer) {
         log.info("Validating security question for user with id: {}", userId);
         
-        List<SecurityQuestion> userQuestions = securityQuestionRepository.findByUser_IdAndIsActiveTrue(userId);
+        List<SecurityQuestion> userQuestions = securityQuestionRepository.findByUserIdAndIsActiveTrue(userId);
         
         return userQuestions.stream()
                 .anyMatch(sq -> sq.getQuestion().equals(question) && 
@@ -167,7 +167,7 @@ public class SecurityQuestionService {
     public void deleteAllSecurityQuestionsByUserId(Long userId) {
         log.info("Deleting all security questions for user with id: {}", userId);
         
-        List<SecurityQuestion> userQuestions = securityQuestionRepository.findByUser_Id(userId);
+        List<SecurityQuestion> userQuestions = securityQuestionRepository.findByUserId(userId);
         securityQuestionRepository.deleteAll(userQuestions);
     }
 
